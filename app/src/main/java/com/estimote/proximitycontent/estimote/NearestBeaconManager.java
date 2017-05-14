@@ -104,8 +104,20 @@ public class NearestBeaconManager {
             }
         }
 
-        System.out.println("Nearest beacon: " + nearestBeacon.
-                getMacAddress() + ", distance: " + nearestBeaconsDistance);
+        /* System.out.println("Nearest beacon: " + nearestBeacon.
+                getMacAddress() + ", distance: " + nearestBeaconsDistance); */
+
+        playerPosition(beacons);
+
         return nearestBeacon;
+    }
+
+    private static double[] playerPosition(List<Beacon> beacons) {
+        for (Beacon beacon : beacons) {
+            double distance = Utils.computeAccuracy(beacon);
+            System.out.println("Beacon: " + beacon.getMacAddress() + ", distance " + distance);
+        }
+
+        return new double[0];
     }
 }
