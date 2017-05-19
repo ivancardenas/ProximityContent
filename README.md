@@ -14,8 +14,10 @@ pitch is the main functionality of this system.
 
 Technology
 
-ToA (time of arrival) it's the time it takes for a radio signal to travel from a transmitter to a single remote 
-receiver. This synchronization can be done in different ways:
-* With an exact synchronization of watches on both sides. The imprecision in the synchronization of the clocks 
-directly translates an inaccurate location.
-* Without direct synchronization, but with clock compensation by phase difference.
+Estimote Beacons
+
+They are essentially tiny, low power computers attached to walls or objects in the physical world. Using proximity 
+technologies they detect human presence and behavior and trigger pre-programmed actions delivering contextual and
+personalized experiences.
+
+More info: https://estimote.com/
