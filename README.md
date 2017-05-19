@@ -1,4 +1,4 @@
-# ProximityContent
+# Tactical assistant
 
 Problem
 
