@@ -8,9 +8,18 @@ import com.estimote.sdk.Region;
 import com.estimote.sdk.Utils;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class NearestBeaconManager {
+
+    private static final String IDP2 = "[D9:41:F3:6E:E5:4F]";
+    private static final String IDP3 = "[EE:F0:2A:CC:14:43]";
+
+    private static final double d = 6;
+    private static final double i = 3;
+    private static final double j = 8;
 
     private static final Region ALL_ESTIMOTE_BEACONS = new Region("all Estimote beacons", null, null, null);
 
@@ -22,6 +31,9 @@ public class NearestBeaconManager {
     private boolean firstEventSent = false;
 
     private BeaconManager beaconManager;
+
+    private static Map<String, List<Double>> beaconsDistance = new HashMap<>();
+
 
     public NearestBeaconManager(Context context, List<BeaconID> beaconIDs) {
         this.beaconIDs = beaconIDs;
@@ -112,12 +124,71 @@ public class NearestBeaconManager {
         return nearestBeacon;
     }
 
-    private static double[] playerPosition(List<Beacon> beacons) {
+    public static void playerPosition(List<Beacon> beacons) {
+
+        // * (ICE)[2]  * (BBR)[3]
+        //       * (MNT)[1]
+
+        int enough = 2; // Enough beacons to operate.
+
+        Map<String, Double> beaconDistance = new HashMap<>();
+
         for (Beacon beacon : beacons) {
-            double distance = Utils.computeAccuracy(beacon);
-            System.out.println("Beacon: " + beacon.getMacAddress() + ", distance " + distance);
+
+            if (beacons.size() == enough) { // Enough beacons.
+
+                beaconDistance.put(beacon.getMacAddress()
+                        .toString(), Utils.computeAccuracy(beacon));
+
+                if (!beaconsDistance.containsKey(beacon.getMacAddress().toString()))
+                    beaconsDistance.put(beacon.getMacAddress()
+                            .toString(), new ArrayList<Double>());
+
+                beaconsDistance.get(beacon.getMacAddress().toString())
+                        .add(Utils.computeAccuracy(beacon));
+            }
         }
 
-        return new double[0];
+        getPlayerPositionX(beaconDistance);
+        getPlayerPositionY(beaconDistance);
+    }
+
+    public static double getPlayerPositionX(Map<String, Double> intensity) {
+
+        double ip1 = 0, ip2 = 0;
+
+        for (Map.Entry<String, Double> entry : intensity.entrySet()) {
+            switch (entry.getKey()) {
+                case IDP2:
+                    ip2 = entry.getValue();
+                    System.out.println("IDP2: " + ip2);
+                    break;
+                default:
+                    ip1 = entry.getValue();
+                    System.out.println("IDP1: " + ip1);
+            }
+        }
+
+        return (Math.pow(ip1, 2) - Math.pow(ip2, 2) + Math.pow(d, 2)) / (2 * d);
+    }
+
+    public static double getPlayerPositionY(Map<String, Double> intensity) {
+
+        double ip1 = 0, ip3 = 0;
+
+        for (Map.Entry<String, Double> entry : intensity.entrySet()) {
+            switch (entry.getKey()) {
+                case IDP3:
+                    ip3 = entry.getValue();
+                    System.out.println("IDP3: " + ip3);
+                    break;
+                default:
+                    ip1 = entry.getValue();
+                    System.out.println("IDP1: " + ip1);
+            }
+        }
+
+        return ((Math.pow(ip1, 2) + Math.pow(ip3, 2) + Math.pow(i, 2) + Math.pow(j, 2))
+                / (2 * j)) - ((i / j) * getPlayerPositionX(intensity));
     }
 }
