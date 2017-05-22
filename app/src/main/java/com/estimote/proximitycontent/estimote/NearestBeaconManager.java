@@ -14,11 +14,12 @@ import java.util.Map;
 
 public class NearestBeaconManager {
 
+    private static final String IDP1 = "[F8:BC:8F:6B:10:CD]";
     private static final String IDP2 = "[D9:41:F3:6E:E5:4F]";
     private static final String IDP3 = "[EE:F0:2A:CC:14:43]";
 
-    private static final double d = 6;
-    private static final double i = 3;
+    private static final double d = 8;
+    private static final double i = 4;
     private static final double j = 8;
 
     private static final Region ALL_ESTIMOTE_BEACONS = new Region("all Estimote beacons", null, null, null);
@@ -114,10 +115,10 @@ public class NearestBeaconManager {
                 nearestBeacon = beacon;
                 nearestBeaconsDistance = distance;
             }
+            System.out.println("Nearest beacon: " + beacon.getMacAddress() + ", distance: " + Utils.computeAccuracy(beacon));
         }
 
-        /* System.out.println("Nearest beacon: " + nearestBeacon.
-                getMacAddress() + ", distance: " + nearestBeaconsDistance); */
+
 
         playerPosition(beacons);
 
@@ -129,7 +130,7 @@ public class NearestBeaconManager {
         // * (ICE)[2]  * (BBR)[3]
         //       * (MNT)[1]
 
-        int enough = 2; // Enough beacons to operate.
+        int enough = 3; // Enough beacons to operate.
 
         Map<String, Double> beaconDistance = new HashMap<>();
 
@@ -149,8 +150,8 @@ public class NearestBeaconManager {
             }
         }
 
-        getPlayerPositionX(beaconDistance);
-        getPlayerPositionY(beaconDistance);
+        System.out.println("X: " + getPlayerPositionX(beaconDistance));
+        System.out.println("Y: " + getPlayerPositionY(beaconDistance));
     }
 
     public static double getPlayerPositionX(Map<String, Double> intensity) {
@@ -161,11 +162,10 @@ public class NearestBeaconManager {
             switch (entry.getKey()) {
                 case IDP2:
                     ip2 = entry.getValue();
-                    System.out.println("IDP2: " + ip2);
                     break;
-                default:
+                case IDP1:
                     ip1 = entry.getValue();
-                    System.out.println("IDP1: " + ip1);
+                    break;
             }
         }
 
@@ -180,11 +180,10 @@ public class NearestBeaconManager {
             switch (entry.getKey()) {
                 case IDP3:
                     ip3 = entry.getValue();
-                    System.out.println("IDP3: " + ip3);
                     break;
-                default:
+                case IDP1:
                     ip1 = entry.getValue();
-                    System.out.println("IDP1: " + ip1);
+                    break;
             }
         }
 
