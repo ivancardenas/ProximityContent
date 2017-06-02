@@ -1,16 +1,32 @@
 package com.estimote.proximitycontent.estimote;
 
 import android.content.Context;
+import android.os.AsyncTask;
+import android.util.Log;
 
 import com.estimote.sdk.Beacon;
 import com.estimote.sdk.BeaconManager;
 import com.estimote.sdk.Region;
 import com.estimote.sdk.Utils;
 
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.DefaultHttpClient;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import java.io.InputStreamReader;
+import android.widget.Toast;
+
+import static com.estimote.sdk.EstimoteSDK.getApplicationContext;
 
 public class NearestBeaconManager {
 
@@ -34,7 +50,6 @@ public class NearestBeaconManager {
     private BeaconManager beaconManager;
 
     private static Map<String, List<Double>> beaconsDistance = new HashMap<>();
-
 
     public NearestBeaconManager(Context context, List<BeaconID> beaconIDs) {
         this.beaconIDs = beaconIDs;
@@ -150,8 +165,10 @@ public class NearestBeaconManager {
             }
         }
 
-        System.out.println("X: " + getPlayerPositionX(beaconDistance));
-        System.out.println("Y: " + getPlayerPositionY(beaconDistance));
+        String json = "{ \"player\": { \"x\":" + Double.toString(getPlayerPositionX(beaconDistance))
+                + ", \"y\":" + Double.toString(getPlayerPositionY(beaconDistance)) +" } }";
+
+        new HttpAsyncTask().execute("https://playerposition.herokuapp.com/players", json);
     }
 
     public static double getPlayerPositionX(Map<String, Double> intensity) {
@@ -189,5 +206,60 @@ public class NearestBeaconManager {
 
         return ((Math.pow(ip1, 2) + Math.pow(ip3, 2) + Math.pow(i, 2) + Math.pow(j, 2))
                 / (2 * j)) - ((i / j) * getPlayerPositionX(intensity));
+    }
+
+    public static String POST(String url, String json) {
+
+        InputStream inputStream;
+        String result = "";
+
+        try {
+            HttpClient httpclient = new DefaultHttpClient();
+            HttpPost httpPost = new HttpPost(url);
+
+            StringEntity se = new StringEntity(json);
+
+            httpPost.setEntity(se);
+            httpPost.setHeader("Accept", "application/json");
+            httpPost.setHeader("Content-type", "application/json");
+
+            HttpResponse httpResponse = httpclient.execute(httpPost);
+            inputStream = httpResponse.getEntity().getContent();
+
+            if(inputStream != null)
+                result = convertInputStreamToString(inputStream);
+            else
+                result = "Did not work!";
+        } catch (Exception e) {
+            Log.d("InputStream", e.getLocalizedMessage());
+        }
+
+        return result;
+    }
+
+    public static class HttpAsyncTask extends AsyncTask<String, Void, String> {
+
+        @Override
+        protected String doInBackground(String... urls) {
+
+            return POST(urls[0], urls[1]);
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            Toast.makeText(getApplicationContext(), "Data Sent!", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private static String convertInputStreamToString(InputStream inputStream) throws IOException{
+        BufferedReader bufferedReader = new BufferedReader( new InputStreamReader(inputStream));
+        String line = "";
+        String result = "";
+        while((line = bufferedReader.readLine()) != null)
+            result += line;
+
+        inputStream.close();
+        return result;
+
     }
 }
